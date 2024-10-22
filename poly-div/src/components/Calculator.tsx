@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Polynomial from "polynomial";
-import { MathJaxContext } from "better-react-mathjax";
+import { MathJax, MathJaxContext } from "better-react-mathjax";
 import PolynomialForm from "./PolynomialForm";
 import DivideButton from "./DivideButton";
 import ResultDisplay from "./ResultDisplay";
@@ -12,7 +12,8 @@ function Calculator() {
   const [quotient, setQuotient] = useState<string>(""); // Store the quotient
   const [remainder, setRemainder] = useState<string>(""); // Store the remainder
   const [traceSteps, setTraceSteps] = useState<string[]>([]); // Store the trace steps
-  const [tableData, setTableData] = useState<boolean>(false); // Track if the table data should be displayed
+  const [tableData, setTableData] = useState<boolean>(false);
+  const [dividendPolynomial, setDividedPolynomial] = useState<Polynomial>();
 
   const handleDivide = () => {
     try {
@@ -49,6 +50,7 @@ function Calculator() {
       setQuotient(quotientResult);
       setRemainder(remainderResult);
       setTraceSteps(trace); // Set the trace steps to display
+      setDividedPolynomial(dividendPoly)
 
       // Keep the table data visible, without hiding it
       setTableData(true);
@@ -62,24 +64,26 @@ function Calculator() {
   };
 
   return (
-    <div className="h-full px-32 py-16">
-      
-        <h1 className="text-9xl font-bold mb-24">
-          Synth<span className="text-cyan-950">Div</span>
-        </h1>
-        <PolynomialForm setDividend={setDividend} setDivisor={setDivisor} />
-        <DivideButton onClick={handleDivide} />
+    <div className="h-full px-32 py-16 w-screen flex flex-col justify-center items-center">
+      <h1 className="text-9xl font-bold mb-24 text-creambg">
+        Synth<span className="text-richblack">Div</span>
+      </h1>
+      <PolynomialForm setDividend={setDividend} setDivisor={setDivisor} />
+      <DivideButton onClick={handleDivide} />
 
-        {tableData && (
-          <MathJaxContext>
-            <ResultDisplay quotient={quotient} remainder={remainder} />
-            <DivisionTable
-              quotient={quotient}
-              divisor={divisor}
-              traceSteps={traceSteps}
-            />
-          </MathJaxContext>
-        )}
+      {tableData && (
+        <MathJaxContext>
+          <h3 className="text-creambg font-bold italic mt-6">Dividend:</h3>
+          <MathJax className=" ">{`\\[\\ ${dividendPolynomial}\\]`}</MathJax>
+
+          <ResultDisplay quotient={quotient} remainder={remainder} />
+          <DivisionTable
+            quotient={quotient}
+            divisor={divisor}
+            traceSteps={traceSteps}
+          />
+        </MathJaxContext>
+      )}
     </div>
   );
 }

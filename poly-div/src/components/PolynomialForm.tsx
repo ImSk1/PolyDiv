@@ -16,9 +16,9 @@ const PolynomialForm: React.FC<PolynomialFormProps> = ({
 }) => {
   // Default monomials for dividend (degree 2 polynomial) and divisor (x + 1)
   const [dividendMonomials, setDividendMonomials] = useState<Monomial[]>([
-    { coefficient: "1", degree: "2" },
-    { coefficient: "1", degree: "1" },
     { coefficient: "1", degree: "0" },
+    { coefficient: "1", degree: "1" },
+    { coefficient: "1", degree: "2" },
   ]);
 
   const [divisor, setDivisorInput] = useState<string>("x+1"); // Default divisor is x + 1
@@ -42,7 +42,7 @@ const PolynomialForm: React.FC<PolynomialFormProps> = ({
   }, [divisor, setDivisor]);
 
   const handleAddMonomial = (setMonomials: React.Dispatch<React.SetStateAction<Monomial[]>>) => {
-    setMonomials((prevMonomials) => [{ coefficient: "1", degree: "1" }, ...prevMonomials]);
+    setMonomials((prevMonomials) => [ ...prevMonomials, { coefficient: "1", degree: "1" },]);
   };
 
   const handleRemoveMonomial = (index: number) => {
@@ -63,55 +63,54 @@ const PolynomialForm: React.FC<PolynomialFormProps> = ({
   };
 
   return (
-    <div>
-      <div className="mb-4">
-        <h3 className="text-xl italic font-semibold mb-4">Enter Dividend Terms:</h3>
+    <div className="flex flex-col items-center justify-center">
+      <div className="mb-4 w-full flex flex-col items-center justify-center">
+        <h3 className="text-xl text-creambg italic font-semibold mb-4 text-center">
+          Enter Dividend Terms:
+        </h3>
         {dividendMonomials.map((monomial, index) => (
-          <div key={index} className="flex flex-col items-center mb-2">
-            <div className="flex flex-row justify-between w-2/3 px-6">
-            <div className="border-2 bg-cyan-900 border-cyan-900 py-1 rounded-3xl w-full flex flex-row justify-center items-center">
-              <input
-                type="text"
-                placeholder="Coefficient"
-                value={monomial.coefficient}
-                onChange={(e) =>
-                  handleMonomialChange(
-                    index,
-                    "coefficient",
-                    e.target.value,
-                    setDividendMonomials
-                  )
-                }
-                className="text-center rounded-3xl p-2 mr-2 w-1/5"
-              />
-              <span className="mr-2">x^</span>
-              <input
-                type="text"
-                placeholder="Degree"
-                value={monomial.degree}
-                onChange={(e) =>
-                  handleMonomialChange(
-                    index,
-                    "degree",
-                    e.target.value,
-                    setDividendMonomials
-                  )
-                }
-                className="text-center rounded-3xl p-2 mr-2 w-1/5"
-              />
-            </div>
-            {/* Show "Remove Term" button if the term is a new one (i.e., index >= 3) */}
-            {index >= 3 && (
+          <div key={index} className="flex flex-col items-center mb-2 w-full">
+              <div className="bg-prussianblue py-1 rounded-3xl flex w-1/2 flex-row justify-center items-center">
+                <input
+                  type="text"
+                  placeholder="Coefficient"
+                  value={monomial.coefficient}
+                  onChange={(e) =>
+                    handleMonomialChange(
+                      index,
+                      "coefficient",
+                      e.target.value,
+                      setDividendMonomials
+                    )
+                  }
+                  className="text-center font-bold bg-creambg text-richblack rounded-3xl p-2 mr-2 w-1/5"
+                />
+                <span className="font-bold mr-2">x^</span>
+                <input
+                  type="text"
+                  placeholder="Degree"
+                  value={monomial.degree}
+                  onChange={(e) =>
+                    handleMonomialChange(
+                      index,
+                      "degree",
+                      e.target.value,
+                      setDividendMonomials
+                    )
+                  }
+                  className="text-center font-bold bg-creambg text-richblack rounded-3xl p-2 mr-2 w-1/5"
+                />
+                {index >= 3 && (
                 <button
                   onClick={() => handleRemoveMonomial(index)}
-                  className="text-red-500 h-1/2 w-1/5 text-xl rounded-3xl ml-4"
+                  className="text-red-500 text-xs rounded-3xl h-full"
                   title="Remove Term"
                 >
                   &#x2715;
                 </button>
               )}
+              </div>
             </div>
-          </div>
         ))}
         <button
           onClick={() => handleAddMonomial(setDividendMonomials)}
@@ -121,15 +120,15 @@ const PolynomialForm: React.FC<PolynomialFormProps> = ({
         </button>
       </div>
 
-      <div className="mb-4">
-        <h3 className="text-xl italic font-semibold mb-4">
+      <div className="mb-4 flex flex-col justify-between items-center">
+        <h3 className="text-xl text-creambg italic font-semibold mb-4">
           Enter Divisor Polynomial:
         </h3>
         <input
           type="text"
           value={divisor}
           onChange={(e) => setDivisorInput(e.target.value)}
-          className="border rounded-3xl py-2 mt-2 w-1/2 text-start px-4"
+          className="rounded-3xl py-2 mt-2 w-2/3 text-start px-4 bg-prussianblue"
           placeholder="Enter the divisor polynomial (default is x + 1)"
         />
       </div>
