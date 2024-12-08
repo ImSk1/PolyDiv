@@ -6,11 +6,22 @@ import DivideButton from "./DivideButton";
 import ResultDisplay from "./ResultDisplay";
 import DivisionTable from "./DivisionTable";
 
+const mathJaxConfig = {
+  loader: {
+    paths: { mathjax: "https://cdn.jsdelivr.net/npm/mathjax@3/es5" },
+    load: ["input/tex", "output/chtml"],
+  },
+  tex: {
+    inlineMath: [["\\(", "\\)"]],
+    displayMath: [["\\[", "\\]"]],
+  },
+};
+
 function Calculator() {
-  const [dividend, setDividend] = useState<string>(""); 
-  const [divisor, setDivisor] = useState<string>(""); 
-  const [quotient, setQuotient] = useState<string>(""); 
-  const [remainder, setRemainder] = useState<string>(""); 
+  const [dividend, setDividend] = useState<string>("");
+  const [divisor, setDivisor] = useState<string>("");
+  const [quotient, setQuotient] = useState<string>("");
+  const [remainder, setRemainder] = useState<string>("");
   const [traceSteps, setTraceSteps] = useState<string[]>([]);
   const [tableData, setTableData] = useState<boolean>(false);
   const [dividendPolynomial, setDividedPolynomial] = useState<Polynomial>();
@@ -22,12 +33,14 @@ function Calculator() {
         return;
       }
       const parsedDividend = JSON.parse(dividend);
-      Polynomial.trace = true;
+      (Polynomial as any).trace = true;
       const dividendPoly = new Polynomial(parsedDividend);
       const divisorPoly = new Polynomial(divisor);
 
       const divisionResult = dividendPoly.div(divisorPoly);
-      const trace = Polynomial.trace.map((step) => step.toLatex());
+      const trace = (Polynomial as any).trace.map((step: any) =>
+        step.toLatex()
+      );
       const quotientResult = divisionResult.toLatex();
       const remainderResult = dividendPoly.mod(divisorPoly).toLatex();
 
@@ -37,7 +50,7 @@ function Calculator() {
       setDividedPolynomial(dividendPoly);
       setTableData(true);
 
-      Polynomial.trace = false;
+      (Polynomial as any).trace = false;
     } catch (error) {
       alert("Error performing division. Please check your input.");
       setTableData(false);
@@ -53,12 +66,16 @@ function Calculator() {
       <DivideButton onClick={handleDivide} />
 
       {tableData && (
-        <MathJaxContext>
+        <MathJaxContext config={mathJaxConfig}>
           <h3 className="text-creambg font-bold italic mt-6">Dividend:</h3>
           <MathJax>{`\\[\\ ${dividendPolynomial}\\]`}</MathJax>
 
           <ResultDisplay quotient={quotient} remainder={remainder} />
-          <DivisionTable quotient={quotient} divisor={divisor} traceSteps={traceSteps} />
+          <DivisionTable
+            quotient={quotient}
+            divisor={divisor}
+            traceSteps={traceSteps}
+          />
         </MathJaxContext>
       )}
     </div>
