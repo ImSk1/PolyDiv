@@ -1,11 +1,11 @@
 import { useState } from "react";
 import Polynomial from "polynomial";
-import { derivative, evaluate } from "mathjs"; // Import mathjs
 import PolynomialForm from "./PolynomialForm";
 import DivideButton from "./DivideButton";
 import ResultDisplay from "./ResultDisplay";
 import DivisionTable from "./DivisionTable";
 import nerdamer from "nerdamer";
+import "nerdamer/all"; // Ensure all modules are loaded
 
 function Calculator() {
   const [dividend, setDividend] = useState<string>("");
@@ -14,8 +14,26 @@ function Calculator() {
   const [remainder, setRemainder] = useState<string>("");
   const [traceSteps, setTraceSteps] = useState<string[]>([]);
   const [tableData, setTableData] = useState<boolean>(false);
-  const [dividendPolynomial, setDividedPolynomial] = useState<Polynomial>();
+  const [dividendPolynomial, setDividedPolynomial] =
+    useState<Polynomial | null>(null);
   const [roots, setRoots] = useState<string[]>([]);
+
+  const calculateDividendPolynomial = () => {
+    try {
+      if (!dividend) {
+        alert("Please enter the dividend.");
+        return null;
+      }
+      const parsedDividend = JSON.parse(dividend);
+      const polynomial = new Polynomial(parsedDividend);
+      setDividedPolynomial(polynomial);
+      return polynomial;
+    } catch (error) {
+      console.error("Error calculating dividend polynomial:", error);
+      alert("Invalid dividend format.");
+      return null;
+    }
+  };
 
   const handleDivide = () => {
     try {
@@ -23,9 +41,9 @@ function Calculator() {
         alert("Please enter both dividend and divisor.");
         return;
       }
-      const parsedDividend = JSON.parse(dividend);
-      (Polynomial as any).trace = true;
-      const dividendPoly = new Polynomial(parsedDividend);
+      const dividendPoly = calculateDividendPolynomial();
+      if (!dividendPoly) return;
+
       const divisorPoly = new Polynomial(divisor);
 
       const divisionResult = dividendPoly.div(divisorPoly);
@@ -38,7 +56,6 @@ function Calculator() {
       setQuotient(quotientResult);
       setRemainder(remainderResult);
       setTraceSteps(trace);
-      setDividedPolynomial(dividendPoly);
       setTableData(true);
       setRoots([]); // Clear roots when performing division
     } catch (error) {
@@ -50,115 +67,61 @@ function Calculator() {
 
   const handleFindRoots = () => {
     try {
-      if (!dividendPolynomial) {
-        alert("Please calculate the dividend polynomial first.");
-        return;
+      let polynomial = dividendPolynomial;
+      if (!polynomial) {
+        // Automatically calculate the dividend polynomial if it hasn't been calculated yet
+        polynomial = calculateDividendPolynomial();
+        if (!polynomial) return;
       }
 
-      // Extract coefficients from the Polynomial object
-      const coeff = dividendPolynomial.coeff as Record<string, number>;
+      // Convert the polynomial to string format for nerdamer
+      const coeff = polynomial.coeff;
       const maxDegree = Math.max(...Object.keys(coeff).map(Number));
-      let coefficients: number[] = Array.from(
+      const coefficients = Array.from(
         { length: maxDegree + 1 },
         (_, i) => coeff[i] || 0
       );
 
-      console.log("Polynomial Coefficients:", coefficients);
+      const polyExpr = coefficients
+        .reverse()
+        .map((c, i) => `${c}*x^${maxDegree - i}`)
+        .join(" + ");
 
-      const tolerance: number = 1e-7; // Convergence tolerance
-      const maxIterations: number = 100; // Maximum number of iterations per root
-      const roots: number[] = []; // Store found roots
+      console.log("Polynomial Expression:", polyExpr);
 
-      while (coefficients.length > 1) {
-        const root = findRoot(coefficients, tolerance, maxIterations);
-        if (root === null) {
-          break; // Stop if no root is found
-        }
-        roots.push(root);
-
-        // Deflate the polynomial by dividing by (x - root)
-        coefficients = deflatePolynomial(coefficients, root);
-      }
-
-      setRoots(roots.map((r) => r.toFixed(6))); // Store roots rounded to 6 decimal places
+      // Use nerdamer to find roots
+      const roots = findRoots(polyExpr);
 
       if (roots.length === 0) {
-        alert("No roots found.");
+        alert("No real roots found.");
       } else {
         console.log("Roots Found:", roots);
+        setRoots(roots); // Save the roots for display
       }
     } catch (error) {
       alert("Error finding roots. Please check your polynomial.");
-      console.log("Error:", error);
+      console.log(error);
     }
   };
 
-  // Newton-Raphson Method for Root Finding
-  const findRoot = (
-    coefficients: number[],
-    tolerance: number,
-    maxIterations: number
-  ): number | null => {
-    let x = 0; // Initial guess
-    for (let iteration = 0; iteration < maxIterations; iteration++) {
-      const fx = evaluatePolynomial(coefficients, x);
-      const fPrimeX = evaluateDerivative(coefficients, x);
+  function findRoots(polyInput: string): string[] {
+    try {
+      // Solve for roots using nerdamer
+      let roots = nerdamer(`solve(${polyInput}, x)`).evaluate().text();
 
-      if (Math.abs(fPrimeX) < tolerance) {
-        console.log("Derivative too small, stopping.");
-        return null;
-      }
+      // Remove the square brackets at the beginning and end of the string
+      roots = roots.replace(/^\[|\]$/g, "");
 
-      const xNext = x - fx / fPrimeX;
-
-      if (Math.abs(xNext - x) < tolerance) {
-        return xNext; // Converged
-      }
-
-      x = xNext;
+      // Split roots and filter out imaginary ones
+      return roots
+        .split(",")
+        .filter((root) => !root.includes("i"))
+        .map((r) => r.trim());
+    } catch (error) {
+      console.error("Error finding roots:", error);
+      return [];
     }
-
-    console.log("Newton-Raphson did not converge.");
-    return null;
-  };
-
-  // Evaluate the Polynomial at a Given Value
-  const evaluatePolynomial = (coefficients: number[], x: number): number => {
-    return coefficients.reduce(
-      (sum, coeff, i) => sum + coeff * Math.pow(x, coefficients.length - i - 1),
-      0
-    );
-  };
-
-  // Evaluate the Derivative of the Polynomial at a Given Value
-  const evaluateDerivative = (coefficients: number[], x: number): number => {
-    return coefficients
-      .map((coeff, i) => coeff * (coefficients.length - i - 1))
-      .slice(0, -1)
-      .reduce(
-        (sum, coeff, i) =>
-          sum + coeff * Math.pow(x, coefficients.length - i - 2),
-        0
-      );
-  };
-
-  // Deflate the Polynomial After Finding a Root
-  const deflatePolynomial = (
-    coefficients: number[],
-    root: number
-  ): number[] => {
-    const newCoefficients: number[] = [];
-    let remainder = 0;
-
-    for (let i = 0; i < coefficients.length; i++) {
-      const current = coefficients[i] + remainder;
-      newCoefficients.push(current);
-      remainder = current * root;
-    }
-
-    newCoefficients.pop(); // Remove the last remainder term
-    return newCoefficients;
-  };
+  }
 
   return (
     <div className="h-full px-4 py-8 md:px-16 lg:px-32 lg:py-16 w-screen flex flex-col justify-center items-center">
