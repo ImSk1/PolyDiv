@@ -41,11 +41,12 @@ function Calculator() {
         alert("Please enter both dividend and divisor.");
         return;
       }
+      (Polynomial as any).trace = true;
+
       const dividendPoly = calculateDividendPolynomial();
       if (!dividendPoly) return;
 
       const divisorPoly = new Polynomial(divisor);
-
       const divisionResult = dividendPoly.div(divisorPoly);
       const trace = (Polynomial as any).trace.map((step: any) =>
         step.toString()
