@@ -36,12 +36,19 @@ const PolynomialForm: React.FC<PolynomialFormProps> = ({
     setDivisor(divisor);
   }, [divisor, setDivisor]);
 
-  const handleAddMonomial = (setMonomials: React.Dispatch<React.SetStateAction<Monomial[]>>) => {
-    setMonomials((prevMonomials) => [...prevMonomials, { coefficient: "1", degree: "1" }]);
+  const handleAddMonomial = (
+    setMonomials: React.Dispatch<React.SetStateAction<Monomial[]>>
+  ) => {
+    setMonomials((prevMonomials) => [
+      ...prevMonomials,
+      { coefficient: "1", degree: "1" },
+    ]);
   };
 
   const handleRemoveMonomial = (index: number) => {
-    setDividendMonomials((prevMonomials) => prevMonomials.filter((_, i) => i !== index));
+    setDividendMonomials((prevMonomials) =>
+      prevMonomials.filter((_, i) => i !== index)
+    );
   };
 
   const handleMonomialChange = (
@@ -71,7 +78,12 @@ const PolynomialForm: React.FC<PolynomialFormProps> = ({
                 placeholder="Coefficient"
                 value={monomial.coefficient}
                 onChange={(e) =>
-                  handleMonomialChange(index, "coefficient", e.target.value, setDividendMonomials)
+                  handleMonomialChange(
+                    index,
+                    "coefficient",
+                    e.target.value,
+                    setDividendMonomials
+                  )
                 }
                 className="text-center font-bold bg-creambg text-richblack rounded-3xl p-2 mr-2 w-1/5"
               />
@@ -81,7 +93,12 @@ const PolynomialForm: React.FC<PolynomialFormProps> = ({
                 placeholder="Degree"
                 value={monomial.degree}
                 onChange={(e) =>
-                  handleMonomialChange(index, "degree", e.target.value, setDividendMonomials)
+                  handleMonomialChange(
+                    index,
+                    "degree",
+                    e.target.value,
+                    setDividendMonomials
+                  )
                 }
                 className="text-center font-bold bg-creambg text-richblack rounded-3xl p-2 mr-2 w-1/5"
               />

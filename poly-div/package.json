@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "better-react-mathjax": "^2.0.3",
+    "mathjs": "^14.0.0",
+    "nerdamer": "^1.1.13",
     "polynomial": "^1.5.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
